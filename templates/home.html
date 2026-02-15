@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Attendance Dashboard</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      margin: 0;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 34px;
+      color: #58a6ff;
+      margin-bottom: 30px;
+    }
+
+    h2,
+    h3 {
+      color: #9ecbff;
+      margin-bottom: 10px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      padding: 20px;
+      border-radius: 14px;
+      margin-bottom: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.35);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    th,
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #21262d;
+    }
+
+    th {
+      background: #161b22;
+      color: #9ecbff;
+      text-align: left;
+    }
+
+    tr:hover {
+      background: #161b22;
+    }
+
+    /* ✅ NAVIGATION BAR */
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .nav-btn {
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      color: #9ecbff;
+      text-decoration: none;
+      font-size: 15px;
+      transition: 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      background: rgba(88, 166, 255, 0.2);
+      border-color: rgba(88, 166, 255, 0.4);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ✅ NAVIGATION BAR -->
+  <div class="nav">
+    <a href="/home" class="nav-btn">Home</a>
+    <a href="/" class="nav-btn">Panel</a>
+    <a href="/logs_page" class="nav-btn">Logs</a>
+  </div>
+
+  <h1>Attendance Analytics Dashboard</h1>
+
+  <!-- TOTAL USERS -->
+  <div class="card">
+    <h2>Total Users</h2>
+    <div id="totalUsersBox" style="font-size: 40px; font-weight: 700; color:#58a6ff;">
+      0
+    </div>
+  </div>
+
+  <!-- CHARTS GRID -->
+  <div class="grid">
+
+    <!-- PIE CHART -->
+    <div class="card">
+      <h3>Present vs Absent Today</h3>
+      <canvas id="pieChart"></canvas>
+    </div>
+
+    <!-- BAR CHART -->
+    <div class="card">
+      <h3>Days Present Per User</h3>
+      <canvas id="barChart" height="260"></canvas>
+    </div>
+
+  </div>
+
+  <!-- FORECAST TABLE -->
+  <div class="card">
+    <h2>Attendance Forecast (Next Day)</h2>
+    <table id="forecastTable">
+      <tr>
+        <th>Name</th>
+        <th>Forecast %</th>
+      </tr>
+    </table>
+  </div>
+  <!-- AI INSIGHTS -->
+  <div class="card">
+    <h2>AI Insights</h2>
+    <canvas id="aiLineChart" width="400" height="200"></canvas>
+    <div id="aiInsightsText" style="margin-top:15px;"></div>
+  </div>
+
+
+
+  <script>
+    // const BASE_URL = "http://192.168.1.37:5000";
+    const BASE_URL = window.location.origin;
+
+
+    // ✅ Load Total Users
+    function loadTotalUsers() {
+      fetch(BASE_URL + "/stats/total_users")
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById("totalUsersBox").innerText = data.total;
+        });
+    }
+
+    // ✅ Load Pie Chart
+    function loadPieChart() {
+      fetch(BASE_URL + "/stats/today_pie")
+        .then(r => r.json())
+        .then(data => {
+          new Chart(document.getElementById("pieChart"), {
+            type: "pie",
+            data: {
+              labels: ["Present", "Absent"],
+              datasets: [{
+                data: [data.present, data.absent],
+                backgroundColor: ["#2ea043", "#da3633"]
+              }]
+            }
+          });
+        });
+    }
+
+    // ✅ Load Bar Chart
+    function loadBarChart() {
+      fetch(BASE_URL + "/stats/days_present")
+        .then(r => r.json())
+        .then(rows => {
+          new Chart(document.getElementById("barChart"), {
+            type: "bar",
+            data: {
+              labels: rows.map(r => r.name),
+              datasets: [{
+                label: "Days Present",
+                data: rows.map(r => r.days_present),
+                backgroundColor: "#58a6ff"
+              }]
+            }
+          });
+        });
+    }
+
+    // ✅ Load Forecast Table
+    function loadForecast() {
+      fetch(BASE_URL + "/stats/forecast")
+        .then(r => r.json())
+        .then(rows => {
+          let html = `
+            <tr>
+              <th>Name</th>
+              <th>Forecast %</th>
+            </tr>
+          `;
+
+          rows.forEach(r => {
+            html += `
+              <tr>
+                <td>${r.name}</td>
+                <td>${r.forecast}%</td>
+              </tr>
+            `;
+          });
+
+          document.getElementById("forecastTable").innerHTML = html;
+        });
+    }
+
+    // ✅ Load all analytics
+    function loadAIInsights() {
+      fetch(BASE_URL + "/stats/ai_insights")
+        .then(r => r.json())
+        .then(data => {
+          // Update text summary
+          document.getElementById("aiInsightsText").innerHTML = `
+        <strong>Tomorrow's Attendance Prediction:</strong> ${data.predicted_attendance}%<br>
+        <strong>Trend:</strong> ${data.trend}<br>
+        <strong>At‑Risk Users:</strong> ${data.risk_users.join(", ") || "None"}<br>
+        <strong>Peak Attendance Time Today:</strong> ${data.peak_time}<br><br>
+        <strong>AI Summary:</strong><br>${data.summary}
+      `;
+
+          // Render line chart
+          const ctx = document.getElementById("aiLineChart").getContext("2d");
+          new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: data.last7_days, // e.g. ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+              datasets: [{
+                label: "Attendance Trend",
+                data: data.last7_counts, // e.g. [12, 15, 14, 18, 20, 17, 19]
+                borderColor: "#58a6ff",
+                backgroundColor: "rgba(88,166,255,0.2)",
+                tension: 0.3, // smooth curve
+                fill: true
+              }]
+            },
+            options: {
+              animation: {
+                duration: 1500,
+                easing: "easeOutQuart"
+              },
+              scales: {
+                y: { beginAtZero: true }
+              }
+            }
+          });
+        });
+    }
+
+
+    loadAIInsights();
+    loadTotalUsers();
+    loadPieChart();
+    loadBarChart();
+    loadForecast();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+</body>
+
+</html>

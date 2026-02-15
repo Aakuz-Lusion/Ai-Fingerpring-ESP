@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Fingerprint Control Panel</title>
+
+  <style>
+    /* ------------------------------
+       GLOBAL DARK THEME
+    ------------------------------ */
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      margin: 0;
+      padding: 30px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 25px;
+      text-align: center;
+      color: #58a6ff;
+      font-weight: 600;
+    }
+
+    h2,
+    h3 {
+      margin-bottom: 12px;
+      font-weight: 500;
+      color: #9ecbff;
+    }
+
+    /* ------------------------------
+       CARD STYLE
+    ------------------------------ */
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      padding: 20px;
+      border-radius: 14px;
+      margin-bottom: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.35);
+      transition: 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(88, 166, 255, 0.4);
+    }
+
+    /* ------------------------------
+       BUTTONS
+    ------------------------------ */
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 6px;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      opacity: 0.9;
+    }
+
+    .btn-refresh {
+      background: #238636;
+      color: white;
+    }
+
+    .btn-enroll {
+      background: #2ea043;
+      color: white;
+    }
+
+    .btn-clear-enroll {
+      background: #6e7681;
+      color: white;
+    }
+
+    .btn-delete {
+      background: #da3633;
+      color: white;
+    }
+
+    .btn-clear-delete {
+      background: #6e7681;
+      color: white;
+    }
+
+    /* ------------------------------
+       TABLES
+    ------------------------------ */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    th {
+      background: #161b22;
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #30363d;
+      color: #9ecbff;
+      font-weight: 500;
+    }
+
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #21262d;
+    }
+
+    tr:hover {
+      background: #161b22;
+    }
+
+    /* ------------------------------
+       BADGES
+    ------------------------------ */
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .badge-enroll-0 {
+      background: #6e7681;
+    }
+
+    .badge-enroll-1 {
+      background: #f1e05a;
+      color: #111;
+    }
+
+    .badge-enroll-2 {
+      background: #2ea043;
+    }
+
+    .badge-del-0 {
+      background: #6e7681;
+    }
+
+    .badge-del-1 {
+      background: #fb8c00;
+      color: #111;
+    }
+
+    .badge-del-2 {
+      background: #da3633;
+    }
+
+    /* ------------------------------
+       INPUTS
+    ------------------------------ */
+    input {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+      background: #0d1117;
+      color: #e6edf3;
+      margin-right: 10px;
+      width: 180px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #58a6ff;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>ESP8266 Fingerprint Control Panel</h1>
+  <a href="#" class="nav-btn" onclick="logout()">Logout</a>
+
+  <!-- NAVIGATION BAR -->
+  <div style="
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    margin-bottom: 30px;
+">
+    <a href="/home" class="nav-btn">Home</a>
+    <a href="/logs_page" class="nav-btn">Logs</a>
+  </div>
+
+  <style>
+    .nav-btn {
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      color: #9ecbff;
+      text-decoration: none;
+      font-size: 15px;
+      transition: 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      background: rgba(88, 166, 255, 0.2);
+      border-color: rgba(88, 166, 255, 0.4);
+      transform: translateY(-2px);
+    }
+  </style>
+
+
+  <!-- USERS PANEL -->
+  <div class="card">
+    <button class="btn-refresh" onclick="loadUsers()">Refresh Users</button>
+    <span id="status" style="margin-left: 10px; opacity: 0.8;"></span>
+
+    <table id="usersTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Finger ID</th>
+          <th>Enrolled</th>
+          <th>Delete Flag</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- ADD USER -->
+  <div class="card">
+    <h3>Add New User</h3>
+    <input id="newName" type="text" placeholder="Name">
+    <input id="newFingerId" type="number" placeholder="Finger ID">
+    <button class="btn-enroll" onclick="addUser()">Add User</button>
+  </div>
+
+  <!-- LIVE LOGS -->
+  <div class="card">
+    <h2>Live Logs Viewer</h2>
+    <table id="logsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Finger ID</th>
+          <th>Name</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- JAVASCRIPT -->
+  <script>
+    // const BASE_URL = "http://192.168.1.37:5000";
+    const BASE_URL = window.location.origin;
+
+    function setStatus(msg) {
+      document.getElementById("status").textContent = msg;
+    }
+
+    async function loadUsers() {
+      setStatus("Loading...");
+      const res = await fetch(`${BASE_URL}/users`);
+      const users = await res.json();
+      renderUsers(users);
+      setStatus(`Loaded ${users.length} users`);
+    }
+
+    function renderUsers(users) {
+      const tbody = document.querySelector("#usersTable tbody");
+      tbody.innerHTML = "";
+
+      users.forEach(u => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${u.id}</td>
+          <td>${u.name}</td>
+          <td>${u.finger_id}</td>
+          <td><span class="badge badge-enroll-${u.enrolled}">enrolled=${u.enrolled}</span></td>
+          <td><span class="badge badge-del-${u.delete_flag}">delete=${u.delete_flag}</span></td>
+          <td>
+            <button class="btn-enroll" onclick="updateEnroll(${u.finger_id},1)">Enroll=1</button>
+            <button class="btn-clear-enroll" onclick="updateEnroll(${u.finger_id},0)">Enroll=0</button>
+            <button class="btn-delete" onclick="updateDelete(${u.finger_id},1)">Delete=1</button>
+            <button class="btn-clear-delete" onclick="updateDelete(${u.finger_id},0)">Delete=0</button>
+            <button class="btn-refresh" onclick="editName(${u.id}, '${u.name}')">Edit Name</button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function updateEnroll(fid, val) {
+      await fetch(`${BASE_URL}/set_enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ finger_id: fid, enrolled: val })
+      });
+      loadUsers();
+    }
+
+    async function updateDelete(fid, val) {
+      await fetch(`${BASE_URL}/set_delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ finger_id: fid, delete_flag: val })
+      });
+      loadUsers();
+    }
+
+    async function loadLogs() {
+      const res = await fetch(`${BASE_URL}/logs`);
+      const logs = await res.json();
+      renderLogs(logs);
+    }
+
+    function renderLogs(logs) {
+      const tbody = document.querySelector("#logsTable tbody");
+      tbody.innerHTML = "";
+
+      logs.forEach(l => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${l.id}</td>
+          <td>${l.finger_id}</td>
+          <td>${l.name || "(unknown)"}</td>
+          <td>${l.timestamp}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function addUser() {
+      const name = document.getElementById("newName").value.trim();
+      const finger_id = parseInt(document.getElementById("newFingerId").value);
+
+      if (!name || !finger_id) {
+        alert("Please enter name and finger ID");
+        return;
+      }
+
+      fetch(BASE_URL + "/add_user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, finger_id })
+      })
+        .then(res => res.json())
+        .then(() => {
+          alert("User added successfully");
+          loadUsers();
+        })
+        .catch(err => console.error(err));
+    }
+    function editName(id, currentName) {
+      const newName = prompt("Enter new name:", currentName);
+      if (!newName || newName.trim() === "") return;
+
+      fetch(`${BASE_URL}/edit_name`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, name: newName })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.status === "ok") {
+            alert("Name updated successfully");
+            loadUsers();
+          } else {
+            alert("Failed to update name");
+          }
+        });
+    }
+
+
+    loadUsers();
+    setInterval(loadLogs, 2000);
+  </script>
+  <script>
+    if (!localStorage.getItem("admin_token")) {
+      window.location.href = "/login";
+    }
+  </script>
+  <script>
+    function logout() {
+      localStorage.removeItem("admin_token");
+      window.location.href = "/login";
+    }
+  </script>
+
+</body>
+
+</html>
