@@ -8,10 +8,9 @@
 #include <time.h>
 
 // WiFi credentials
-const char* ssid = "Megatron";
-const char* password = "HYPOTHESIS786@";
-// const char* ssid = "Whitefield School";
-// const char* password = "CLB@1096";
+const char* ssid = "Your Wifi Name";
+const char* password = "Password";
+
 
 // Base IP and Port
 // #define SERVER_IP "192.168.1.37"
