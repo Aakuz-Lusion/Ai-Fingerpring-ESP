@@ -123,11 +123,11 @@ INSERT INTO `users` (`id`, `name`, `finger_id`, `enrolled`, `delete_flag`) VALUE
 (1, 'Rams', 44, 2, 0),
 (2, 'Test User B', 50, 2, 0),
 (3, 'Aakuz', 101, 2, 0),
-(5, 'Raj', 111, 2, 0),
+(5, 'Rj', 111, 2, 0),
 (7, 'Lusion', 102, 0, 0),
-(8, 'Subham', 103, 0, 0),
+(8, 'Sub', 103, 0, 0),
 (9, 'Anits', 104, 0, 0),
-(11, 'taz', 14, 0, 0),
+(11, 'tdz', 14, 0, 0),
 (12, 'Lasttz', 23, 0, 0),
 (13, 'sam', 4, 2, 0);
 
