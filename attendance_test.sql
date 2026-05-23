@@ -66,7 +66,7 @@ INSERT INTO `users` (`id`, `name`, `finger_id`, `enrolled`, `delete_flag`) VALUE
 (1, 'Test User A', 44, 2, 0),
 (2, 'Test User B', 50, 2, 0),
 (3, 'Aakuz', 101, 2, 0),
-(5, 'Raj', 111, 2, 0);
+(5, 'ada', 111, 2, 0);
 
 --
 -- Indexes for dumped tables
